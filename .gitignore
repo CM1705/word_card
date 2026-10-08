@@ -33,3 +33,7 @@ build.py
 vocabulary-editor.html
 vocabulary.html
 使用前阅读（最大化界面）.txt
+
+# ---- 仅本机使用的开发/验收脚本，不参与 exe 打包，不入库 ----
+test_maker_server.py
+verify_unified.mjs
