@@ -6,11 +6,25 @@
 - 内置词库：**38** 个编程词汇，每词 1 段 `en-US-GuyNeural` 男声固定发音（base64 内嵌，离线可听）
 - 成品 HTML **不需要联网**；只有「在线生成固定发音」这一步会调用微软 Edge TTS
 
+## 下载（免安装，只下载 exe 即可）
+
+不想下载整个项目？直接下载单个可执行文件：
+
+| 下载方式 | 链接 |
+| --- | --- |
+| **最新版本（推荐）** | [下载 VocabularyCardMaker.exe](https://github.com/CM1705/word_card/releases/latest/download/VocabularyCardMaker.exe) |
+| 固定版本 v1.10.0 | [下载 v1.10.0](https://github.com/CM1705/word_card/releases/download/v1.10.0/VocabularyCardMaker.exe) |
+| 全部版本 | [Releases 页面](https://github.com/CM1705/word_card/releases) |
+
+下载后**双击即可运行**，不需要安装 Python 或任何依赖。首次运行若遇到 Windows SmartScreen 提示，选择「更多信息 → 仍要运行」即可（程序未做代码签名）。
+
+> 附件名为何是英文的 `VocabularyCardMaker.exe`：GitHub 会剔除 Release 附件名中的非 ASCII 字符，中文文件名会被清空并回退成 `default.exe`。程序内部显示的名称仍是「单词卡制作器」。
+
 ## 目录结构
 
 | 路径 | 说明 |
 | --- | --- |
-| `可运行/单词卡制作器.exe` | **免安装可运行版本**（单文件约 16.2 MB，双击即用） |
+| `可运行/单词卡制作器.exe` | **免安装可运行版本**（单文件约 16.2 MB，双击即用）；同一文件也作为 Release 附件发布，供单独下载 |
 | `vocabulary_maker.py` | 制作器本体：本地 HTTP 服务、Edge TTS 代理、默认词库读写、页面生命周期管理 |
 | `unified-template.html` | 统一模板：同一份文件既是成品单词卡、也是编辑界面（含 `__APP_VERSION__` / `__APP_DATA__` 占位符） |
 | `default-vocabulary.html` | 默认词库数据源（旧版单词本，内含 38 个词及其固定音频） |
@@ -18,13 +32,12 @@
 | `exe-assets/vocabulary-v001.html` | 构建产物：最终单文件 HTML，同时也是 EXE 内置的默认页面 |
 | `vocabulary_maker.spec` | PyInstaller 打包配置（单文件、无控制台、内嵌 assets） |
 | `vocabulary_maker_version.txt` | Windows 文件版本信息（1.10.0） |
-| `test_maker_server.py` | 无网络接口测试（把 TTS 替换为假实现，不消耗网络） |
-| `verify_unified.mjs` | Node 产物校验（单文件约束、38 词顺序、音频哈希复用、UI 行为契约） |
 | `.gitignore` | 忽略 `__pycache__`、`exe-build/`、`exe-dist/` 等中间产物 |
+| `.gitattributes` | 统一 LF 换行，并把 `.exe` 标为二进制防止被转换 |
 
 ## 快速开始（普通用户，推荐）
 
-1. 下载 `可运行/单词卡制作器.exe`（后续版本见 Releases 页面）
+1. 从上方「下载」一节获取 `VocabularyCardMaker.exe`（仓库内也保留了一份副本：`可运行/单词卡制作器.exe`）
 2. 双击运行 —— 会自动用默认浏览器打开制作器页面
 3. 点 **✎ 编辑单词** 进入编辑模式，可 **＋ 添加单词**、编辑、**批量删除**、**清空全部单词**，或按住卡片拖动调整顺序
 4. 新单词在编辑弹窗里点 **在线生成固定发音**（此步需要联网）
@@ -51,11 +64,15 @@ pip install edge-tts pyinstaller
 | 重新生成单文件页面 | `python build_unified.py` |
 | 本地启动制作器 | `python vocabulary_maker.py` |
 | 只做启动自检（不启服务） | `python vocabulary_maker.py --self-test` |
-| 接口测试（不需要网络） | `python test_maker_server.py` |
-| 校验构建产物 | `node verify_unified.mjs` |
+| 接口测试（不需要网络） | `python test_maker_server.py`（本机脚本，未入库） |
+| 校验构建产物 | `node verify_unified.mjs`（本机脚本，未入库） |
 | 打包 EXE | `pyinstaller vocabulary_maker.spec --noconfirm --clean --workpath exe-build --distpath exe-dist` |
 
 打包完成后，把 `exe-dist/单词卡制作器.exe` 复制到 `可运行/`，即为可发布的免安装版本。
+
+发布新版本让别人能单独下载 exe：在 GitHub 仓库页面进入 **Releases → Draft a new release**，填好 tag（例如 `v1.11.0`），把 `可运行/单词卡制作器.exe` 拖进附件区即可。
+
+> ⚠️ 附件名**必须用 ASCII**（例如 `VocabularyCardMaker.exe`）。GitHub 会剔除附件名中的非 ASCII 字符，中文名会被清空并回退成 `default.exe`，导致 `releases/latest/download/...` 直链失效。
 
 ## 环境变量
 
