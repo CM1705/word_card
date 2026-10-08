@@ -1,0 +1,35 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ---- PyInstaller 打包中间产物（可随时重新生成） ----
+exe-build/
+exe-dist/
+build/
+dist/
+*.manifest
+
+# ---- 本地临时文件 ----
+.audio_tmp/
+*.tmp
+*.bak
+
+# ---- 编辑器 / 系统 ----
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- 旧流程产生的本地导出（保留在本地，不入库） ----
+vocabulary-final.html
+vocabulary.json
+
+# ---- 已废弃的旧流程文件（JSON + build.py 方案），仅保留在本地 ----
+build.py
+vocabulary-editor.html
+vocabulary.html
+使用前阅读（最大化界面）.txt

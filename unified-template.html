@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#fff8e7">
+  <meta name="vocabulary-app-version" content="__APP_VERSION__">
+  <meta name="tts-endpoint" content="">
+  <meta name="local-app-token" content="">
+  <title>编程单词卡</title>
+  <style>
+    :root {
+      --page: #fff8e7;
+      --panel: rgba(255,255,255,.86);
+      --panel-solid: #fffdf7;
+      --ink: #292941;
+      --muted: #6f7185;
+      --line: rgba(45,45,68,.12);
+      --primary: #6557d9;
+      --primary-dark: #4f43b7;
+      --danger: #c84462;
+      --success: #218866;
+      --warning: #a66500;
+      --shadow: 0 16px 45px rgba(83,67,42,.13);
+      --radius: 24px;
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--page); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 4%, rgba(255,143,171,.18), transparent 28rem),
+        radial-gradient(circle at 92% 12%, rgba(78,205,196,.17), transparent 30rem),
+        var(--page);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.55;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 3px solid rgba(101,87,217,.28);
+      outline-offset: 2px;
+    }
+    [hidden] { display: none !important; }
+    .app-shell { width: min(1240px, 100%); margin: 0 auto; padding: 22px clamp(14px, 3vw, 34px) 110px; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: clamp(22px, 4vw, 38px);
+      border: 1px solid rgba(255,255,255,.8);
+      border-radius: 32px;
+      background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(255,251,238,.9));
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: "Aa";
+      position: absolute;
+      right: clamp(150px, 25vw, 320px);
+      bottom: -52px;
+      color: rgba(101,87,217,.055);
+      font: 900 clamp(120px, 18vw, 220px)/1 Georgia, serif;
+      pointer-events: none;
+      transform: rotate(-7deg);
+    }
+    .brand { position: relative; z-index: 1; min-width: 0; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 8px;
+      color: var(--primary);
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before { content: ""; width: 24px; height: 4px; border-radius: 99px; background: #ff8fab; }
+    h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.55rem); line-height: 1.05; letter-spacing: -.055em; }
+    .hero-copy { max-width: 650px; margin: 11px 0 0; color: var(--muted); font-size: clamp(.95rem, 2vw, 1.06rem); }
+    .hero-side { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+    .version-pill, .stat-pill, .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 36px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: .8rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .version-pill { color: #3f367f; background: #eeebff; border: 1px solid #ded8ff; }
+    .hero-stats { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .stat-pill { color: #4b4c61; background: rgba(255,255,255,.75); border: 1px solid var(--line); }
+    .toolbar {
+      position: sticky;
+      z-index: 20;
+      top: 10px;
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(150px, 210px) auto;
+      gap: 10px;
+      align-items: center;
+      margin: 20px 0;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,.86);
+      border-radius: 20px;
+      background: rgba(255,253,247,.86);
+      box-shadow: 0 10px 30px rgba(72,58,36,.1);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .search-wrap { position: relative; min-width: 0; }
+    .search-wrap::before { content: "⌕"; position: absolute; left: 15px; top: 50%; color: #8a8999; font-size: 1.3rem; transform: translateY(-53%); }
+    .control {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      color: var(--ink);
+      background: rgba(255,255,255,.9);
+      font-size: 16px;
+    }
+    input.control, textarea.control { padding: 11px 13px; }
+    .search-wrap .control { padding-left: 43px; }
+    select.control { padding: 0 38px 0 13px; cursor: pointer; }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 14px;
+      color: #fff;
+      background: var(--primary);
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .button:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(101,87,217,.22); background: var(--primary-dark); }
+    .button:active { transform: translateY(1px); }
+    .button.secondary { color: #4f4d66; background: #f1eff8; }
+    .button.secondary:hover { background: #e8e4f3; box-shadow: none; }
+    .button.danger { color: #a4304c; background: #ffe8ee; }
+    .button.danger:hover { background: #ffdbe4; box-shadow: none; }
+    .button.success { background: #218866; }
+    .button.success:hover { background: #176e52; box-shadow: 0 8px 18px rgba(33,136,102,.22); }
+    .button.warning { background: #a66500; }
+    .button.warning:hover { background: #855100; box-shadow: 0 8px 18px rgba(166,101,0,.22); }
+    .button.compact { min-height: 42px; padding: 8px 12px; border-radius: 12px; font-size: .88rem; }
+    .button:disabled { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
+    .results-line { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 2px 14px; color: var(--muted); font-size: .9rem; }
+    .results-line strong { color: var(--ink); }
+    .word-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 15px; }
+    .word-card {
+      --card-a: #fff0f0;
+      --card-b: #ffe0e0;
+      --card-line: #ff6b6b;
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+      padding: 21px;
+      border: 2px solid var(--card-line);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--card-a), var(--card-b));
+      box-shadow: 0 6px 18px rgba(47,43,63,.07);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .word-card:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(47,43,63,.12); }
+    .drag-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 42px;
+      margin: 0 0 14px;
+      padding: 8px 12px;
+      border: 1px dashed rgba(79,77,102,.34);
+      border-radius: 12px;
+      color: #55516f;
+      background: rgba(255,255,255,.56);
+      font: inherit;
+      font-size: .86rem;
+      font-weight: 850;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body[data-local-app="true"][data-editing="true"] .drag-handle { display: flex; }
+    .drag-handle:hover { color: #42399b; background: rgba(255,255,255,.82); }
+    .drag-handle:active { cursor: grabbing; }
+    .drag-handle.unavailable { opacity: .52; cursor: not-allowed; }
+    body.is-dragging, body.is-dragging * { cursor: grabbing !important; user-select: none !important; }
+    body.is-dragging .word-card { transition: none; }
+    .word-card.drag-source {
+      opacity: .24;
+      border-style: dashed;
+      box-shadow: none;
+      pointer-events: none;
+      transform: none !important;
+    }
+    .word-card.drag-ghost {
+      position: fixed;
+      z-index: 120;
+      max-height: 72vh;
+      margin: 0;
+      overflow: hidden;
+      pointer-events: none;
+      opacity: .96;
+      transform: scale(1.02) rotate(.35deg);
+      box-shadow: 0 22px 52px rgba(47,43,63,.28);
+      transition: none;
+    }
+    .drag-ghost .drag-handle { display: flex; }
+    .drag-ghost .card-actions { display: none !important; }
+    .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .word-title { min-width: 0; margin: 0; overflow-wrap: anywhere; font-size: clamp(1.55rem, 4vw, 1.95rem); line-height: 1.15; letter-spacing: -.035em; }
+    .tag {
+      flex: 0 0 auto;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: .7rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .tag.keyword { color: #a53c3c; background: rgba(255,107,107,.16); }
+    .tag.function { color: #187e76; background: rgba(78,205,196,.18); }
+    .tag.general { color: #a44268; background: rgba(255,143,171,.18); }
+    .phonetic-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 13px 0; }
+    .phonetic {
+      min-width: 0;
+      padding: 7px 10px;
+      border-radius: 11px;
+      color: #4d4c66;
+      background: rgba(255,255,255,.62);
+      font-family: "SFMono-Regular", Consolas, "Courier New", monospace;
+      font-size: 1.06rem;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+    .speak-button {
+      flex: 0 0 auto;
+      width: 46px;
+      height: 46px;
+      border: 0;
+      border-radius: 50%;
+      color: #fff;
+      background: linear-gradient(135deg, #6557d9, #db5d96);
+      font-size: 1.05rem;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 5px 13px rgba(101,87,217,.26);
+      transition: transform .17s ease;
+    }
+    .speak-button:hover { transform: scale(1.08); }
+    .speak-button.playing { animation: pulse .7s ease-in-out infinite alternate; }
+    .speak-button.missing { color: #7f7180; background: #ded9df; box-shadow: none; }
+    @keyframes pulse { to { transform: scale(1.13); box-shadow: 0 7px 22px rgba(101,87,217,.4); } }
+    .meaning { margin: 0 0 14px; color: #3d3d51; font-size: 1rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .phrases { padding-top: 12px; border-top: 2px dashed rgba(45,45,68,.11); }
+    .phrase-label { margin-bottom: 7px; color: #6f7082; font-size: .88rem; font-weight: 800; letter-spacing: .04em; }
+    .phrase-item { display: flex; flex-wrap: wrap; gap: 6px; margin: 5px 0; font-size: .94rem; line-height: 1.45; }
+    .phrase-en { color: #464558; font-weight: 750; }
+    .phrase-zh { color: #777686; }
+    .no-phrases { color: #858493; font-size: .9rem; line-height: 1.45; }
+    .card-actions { display: none; gap: 7px; flex-wrap: wrap; margin-top: 15px; padding-top: 13px; border-top: 1px solid rgba(45,45,68,.1); }
+    body[data-editing="true"] .card-actions { display: flex; }
+    .audio-warning { display: inline-flex; align-items: center; gap: 5px; color: var(--warning); font-size: .76rem; font-weight: 800; }
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 50px 20px;
+      border: 2px dashed rgba(45,45,68,.15);
+      border-radius: 24px;
+      color: var(--muted);
+      background: rgba(255,255,255,.5);
+      text-align: center;
+    }
+    .edit-dock {
+      position: fixed;
+      z-index: 35;
+      left: 50%;
+      bottom: max(18px, env(safe-area-inset-bottom));
+      display: none;
+      align-items: center;
+      gap: 8px;
+      width: min(1120px, calc(100% - 24px));
+      flex-wrap: wrap;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,.8);
+      border-radius: 20px;
+      background: rgba(40,40,61,.93);
+      box-shadow: 0 18px 48px rgba(32,28,44,.32);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      transform: translateX(-50%);
+    }
+    body[data-editing="true"] .edit-dock { display: flex; }
+    .dock-status { min-width: 0; flex: 1 1 auto; padding: 0 8px; color: #f4f1ff; font-size: .8rem; }
+    .dock-status strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dock-status span { color: #c9c4d8; }
+    .modal-backdrop {
+      position: fixed;
+      z-index: 80;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(29,27,43,.55);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      width: min(760px, 100%);
+      max-height: min(860px, calc(100vh - 36px));
+      overflow: auto;
+      border-radius: 26px;
+      background: var(--panel-solid);
+      box-shadow: 0 24px 70px rgba(20,18,31,.3);
+      overscroll-behavior: contain;
+    }
+    .modal-head {
+      position: sticky;
+      z-index: 2;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 19px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,253,247,.94);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .modal-head h2 { margin: 0; font-size: 1.25rem; }
+    .close-button { width: 44px; height: 44px; border: 0; border-radius: 12px; color: #5f5d70; background: #efedf3; font-size: 1.3rem; cursor: pointer; }
+    .modal-body { padding: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .field { min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { display: block; margin: 0 0 6px; color: #555469; font-size: .82rem; font-weight: 800; }
+    .required { color: var(--danger); }
+    textarea.control { min-height: 92px; resize: vertical; }
+    .phrase-editor { display: grid; gap: 8px; }
+    .phrase-title-control { margin-bottom: 8px; }
+    .phrase-row { display: grid; grid-template-columns: 1fr 1fr 44px; gap: 8px; align-items: center; }
+    .icon-button { width: 44px; height: 44px; border: 0; border-radius: 12px; color: #a4304c; background: #ffe8ee; font-size: 1.1rem; cursor: pointer; }
+    .audio-box { padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: #f8f6ee; }
+    .audio-box-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .audio-box-title { font-size: .9rem; font-weight: 850; }
+    .status-pill.good { color: #176b50; background: #dff5ec; }
+    .status-pill.warn { color: #8e5700; background: #ffedc7; }
+    .audio-help { margin: 8px 0 0; color: var(--muted); font-size: .8rem; }
+    .audio-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .file-button { position: relative; overflow: hidden; }
+    .file-button input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+    .local-app-only { display: none; }
+    body[data-local-app="true"] .local-app-only { display: inline-flex; }
+    .form-error { min-height: 22px; margin: 12px 0 0; color: var(--danger); font-size: .85rem; font-weight: 700; }
+    .modal-foot { display: flex; justify-content: flex-end; gap: 9px; padding: 0 20px 20px; }
+    .batch-delete-tools { display: grid; gap: 10px; padding: 16px 20px 10px; }
+    .batch-delete-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .batch-delete-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      max-height: min(52vh, 520px);
+      overflow: auto;
+      padding: 8px 20px 12px;
+    }
+    .batch-delete-item {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      cursor: pointer;
+    }
+    .batch-delete-item:has(input:checked) { border-color: #e68aa0; background: #fff0f4; }
+    .batch-delete-item input { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--danger); }
+    .batch-delete-word { display: block; color: var(--ink); font-weight: 850; overflow-wrap: anywhere; }
+    .batch-delete-meaning { display: block; margin-top: 2px; color: var(--muted); font-size: .78rem; line-height: 1.4; }
+    .batch-delete-summary { margin: 0; padding: 0 20px 14px; color: var(--muted); font-size: .84rem; }
+    .toast {
+      position: fixed;
+      z-index: 120;
+      left: 50%;
+      bottom: 24px;
+      max-width: calc(100% - 28px);
+      padding: 12px 17px;
+      border-radius: 14px;
+      color: #fff;
+      background: #292941;
+      box-shadow: 0 12px 35px rgba(20,18,31,.28);
+      font-size: .88rem;
+      font-weight: 750;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 12px);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .footer-note { margin: 30px 0 0; color: #898795; font-size: .78rem; text-align: center; }
+    body[data-exported="true"] .hero,
+    body[data-exported="true"] .results-line,
+    body[data-exported="true"] .edit-dock,
+    body[data-exported="true"] .card-actions,
+    body[data-exported="true"] .footer-note,
+    body[data-exported="true"] .modal-backdrop,
+    body[data-exported="true"] .toast { display: none !important; }
+    body[data-exported="true"] #toggleEditButton { display: none !important; }
+    body[data-exported="true"] .toolbar {
+      grid-template-columns: minmax(0, 1fr) minmax(150px, 210px);
+      margin-top: 0;
+    }
+    body[data-exported="true"] .app-shell { padding-bottom: 22px; }
+    @media (min-width: 620px) {
+      .word-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; }
+      .word-card:nth-child(2n + 1) { --card-a: #fff0f0; --card-b: #ffe0e0; --card-line: #ff6b6b; }
+      .word-card:nth-child(2n) { --card-a: #e8fdfb; --card-b: #d0f5f1; --card-line: #4ecdc4; }
+    }
+    @media (min-width: 980px) {
+      .word-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 19px; }
+      .word-card:nth-child(3n + 1) { --card-a: #fff0f0; --card-b: #ffe0e0; --card-line: #ff6b6b; }
+      .word-card:nth-child(3n + 2) { --card-a: #e8fdfb; --card-b: #d0f5f1; --card-line: #4ecdc4; }
+      .word-card:nth-child(3n) { --card-a: #fffde0; --card-b: #fff8b8; --card-line: #e4bf25; }
+    }
+    @media (min-width: 1360px) {
+      .app-shell { width: min(1480px, 100%); }
+      .word-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .word-card:nth-child(4n + 1) { --card-a: #fff0f0; --card-b: #ffe0e0; --card-line: #ff6b6b; }
+      .word-card:nth-child(4n + 2) { --card-a: #e8fdfb; --card-b: #d0f5f1; --card-line: #4ecdc4; }
+      .word-card:nth-child(4n + 3) { --card-a: #fffde0; --card-b: #fff8b8; --card-line: #e4bf25; }
+      .word-card:nth-child(4n) { --card-a: #effaf3; --card-b: #d8f5e3; --card-line: #75c6a7; }
+    }
+    @media (max-width: 720px) {
+      .app-shell { padding-top: 12px; }
+      .hero { align-items: flex-start; flex-direction: column; padding: 22px; border-radius: 25px; }
+      .hero::after { right: -15px; bottom: -36px; }
+      .hero-side { align-items: flex-start; }
+      .hero-stats { justify-content: flex-start; }
+      .toolbar { position: static; grid-template-columns: 1fr 1fr; }
+      .search-wrap { grid-column: 1 / -1; }
+      .toolbar .button { width: 100%; }
+      body[data-exported="true"] .toolbar { grid-template-columns: 1fr; }
+      body[data-exported="true"] .search-wrap { grid-column: auto; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .modal-backdrop { align-items: flex-end; padding: 0; }
+      .modal { width: 100%; max-height: 94vh; border-radius: 24px 24px 0 0; padding-bottom: env(safe-area-inset-bottom); }
+      .batch-delete-list { grid-template-columns: 1fr; }
+      .edit-dock { align-items: stretch; flex-wrap: wrap; }
+      .dock-status { flex-basis: 100%; }
+      .edit-dock .button { flex: 1 1 120px; }
+    }
+    @media (max-width: 420px) {
+      .toolbar { grid-template-columns: 1fr; }
+      .search-wrap { grid-column: auto; }
+      .phrase-row { grid-template-columns: 1fr 44px; }
+      .phrase-row .phrase-zh-input { grid-column: 1 / -1; grid-row: 2; }
+      .phrase-row .icon-button { grid-column: 2; grid-row: 1; }
+      .modal-foot { flex-direction: column-reverse; }
+      .modal-foot .button { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
+    @media print {
+      body { background: #fff; }
+      .hero, .toolbar, .results-line, .edit-dock, .card-actions, .footer-note { display: none !important; }
+      .app-shell { width: 100%; padding: 0; }
+      .word-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .word-card { break-inside: avoid; box-shadow: none; }
+      .speak-button { display: none; }
+    }
+  </style>
+</head>
+<body data-editing="false" data-exported="false">
+  <div class="app-shell">
+    <header class="hero">
+      <div class="brand">
+        <div class="eyebrow">Offline Vocabulary</div>
+        <h1>编程单词卡</h1>
+        <p class="hero-copy">轻点发音，随时复习。当前文件同时包含词汇、固定男声音频和编辑工具，可离线观看。</p>
+      </div>
+      <div class="hero-side">
+        <div class="version-pill" id="versionPill">界面 v__APP_VERSION__</div>
+        <div class="hero-stats">
+          <span class="stat-pill"><strong id="totalCount">0</strong> 个单词</span>
+          <span class="stat-pill"><strong id="audioCount">0</strong> 个固定发音</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="toolbar" aria-label="单词工具栏">
+      <div class="search-wrap">
+        <input class="control" id="searchInput" type="search" placeholder="搜索单词、释义或短语" autocomplete="off" aria-label="搜索单词">
+      </div>
+      <select class="control" id="categoryFilter" aria-label="按分类筛选">
+        <option value="all">全部分类</option>
+        <option value="keyword">编程关键字</option>
+        <option value="function">函数 / 概念</option>
+        <option value="general">通用词汇</option>
+      </select>
+      <button class="button" id="toggleEditButton" type="button">✎ 编辑单词</button>
+    </section>
+
+    <div class="results-line">
+      <span>显示 <strong id="visibleCount">0</strong> 个结果</span>
+      <span id="voiceLabel">固定声音：en-US-GuyNeural</span>
+    </div>
+
+    <main class="word-grid" id="wordGrid" aria-live="polite"></main>
+    <p class="footer-note">此单词卡的页面、数据和已有音频均保存在当前 HTML 文件内。</p>
+  </div>
+
+  <aside class="edit-dock" id="editDock" aria-label="编辑工具">
+    <div class="dock-status">
+      <strong id="editStatusTitle">编辑模式</strong>
+      <span id="editStatusDetail">修改会在导出新单词卡时写入文件</span>
+    </div>
+    <label class="button secondary compact file-button local-app-only">导入单词卡
+      <input id="projectFileInput" type="file" accept="text/html,.html" aria-label="打开已有单词卡版本">
+    </label>
+    <button class="button compact" id="addWordButton" type="button">＋ 添加单词</button>
+    <button class="button danger compact" id="batchDeleteButton" type="button">批量删除</button>
+    <button class="button danger compact" id="clearAllButton" type="button">清空全部单词</button>
+    <button class="button warning compact local-app-only" id="saveDefaultButton" type="button">★ 保存为默认内容</button>
+    <button class="button success compact" id="exportButton" type="button">↓ 导出新单词卡</button>
+    <button class="button secondary compact" id="leaveEditButton" type="button">完成编辑</button>
+  </aside>
+
+  <div class="modal-backdrop" id="editorBackdrop" aria-hidden="true">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
+      <div class="modal-head">
+        <h2 id="editorTitle">添加单词</h2>
+        <button class="close-button" id="closeEditorButton" type="button" aria-label="关闭编辑窗口">×</button>
+      </div>
+      <form id="wordForm" novalidate>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="field">
+              <label for="wordInput">英文单词 <span class="required">*</span></label>
+              <input class="control" id="wordInput" type="text" maxlength="80" autocomplete="off" required>
+            </div>
+            <div class="field">
+              <label for="phoneticInput">音标</label>
+              <input class="control" id="phoneticInput" type="text" maxlength="120" autocomplete="off" placeholder="例如：[prɪnt]">
+            </div>
+            <div class="field">
+              <label for="categoryInput">分类</label>
+              <select class="control" id="categoryInput">
+                <option value="keyword">编程关键字</option>
+                <option value="function">函数 / 概念</option>
+                <option value="general">通用词汇</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label for="meaningInput">中文释义 <span class="required">*</span></label>
+              <textarea class="control" id="meaningInput" maxlength="600" required></textarea>
+            </div>
+            <div class="field full">
+              <label for="phraseTitleInput">短语栏目名称</label>
+              <input class="control phrase-title-control" id="phraseTitleInput" type="text" maxlength="40" autocomplete="off" placeholder="例如：短语搭配；留空时恢复默认名称">
+              <div class="phrase-editor" id="phraseEditor"></div>
+              <button class="button secondary compact" id="addPhraseButton" type="button" style="margin-top:8px">＋ 添加短语</button>
+            </div>
+            <div class="field full">
+              <label>固定发音</label>
+              <div class="audio-box">
+                <div class="audio-box-head">
+                  <div>
+                    <div class="audio-box-title">成品声音必须为 en-US-GuyNeural</div>
+                    <p class="audio-help" id="audioHelp">已有单词会直接沿用当前文件中的固定音频。</p>
+                  </div>
+                  <span class="status-pill good" id="audioStatus">已有固定发音</span>
+                </div>
+                <div class="audio-actions">
+                  <button class="button secondary compact" id="devicePreviewButton" type="button">▶ 设备临时试听</button>
+                  <button class="button secondary compact" id="onlineTtsButton" type="button">在线生成固定发音</button>
+                  <label class="button secondary compact file-button">导入 MP3
+                    <input id="audioFileInput" type="file" accept="audio/mpeg,.mp3" aria-label="导入单词 MP3 发音">
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-error" id="formError" role="alert"></div>
+        </div>
+        <div class="modal-foot">
+          <button class="button secondary" id="cancelEditorButton" type="button">取消</button>
+          <button class="button" type="submit">保存单词</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="batchDeleteBackdrop" aria-hidden="true">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="batchDeleteTitle">
+      <div class="modal-head">
+        <h2 id="batchDeleteTitle">批量删除单词</h2>
+        <button class="close-button" id="closeBatchDeleteButton" type="button" aria-label="关闭批量删除窗口">×</button>
+      </div>
+      <div class="batch-delete-tools">
+        <input class="control" id="batchDeleteSearch" type="search" placeholder="搜索要删除的单词或释义" autocomplete="off" aria-label="搜索要删除的单词">
+        <div class="batch-delete-actions">
+          <button class="button secondary compact" id="selectVisibleWordsButton" type="button">全选当前结果</button>
+          <button class="button secondary compact" id="clearWordSelectionButton" type="button">取消全选</button>
+        </div>
+      </div>
+      <div class="batch-delete-list" id="batchDeleteList"></div>
+      <p class="batch-delete-summary" id="batchDeleteSummary">已选择 0 个单词</p>
+      <div class="modal-foot">
+        <button class="button secondary" id="cancelBatchDeleteButton" type="button">取消</button>
+        <button class="button danger" id="confirmBatchDeleteButton" type="button" disabled>删除所选单词</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="application/json" id="app-data">__APP_DATA__</script>
+  <script>
+  (function () {
+    'use strict';
+
+    var CATEGORY_LABELS = {
+      keyword: '编程关键字',
+      function: '函数 / 概念',
+      general: '通用词汇'
+    };
+    var APP_VERSION = (document.querySelector('meta[name="vocabulary-app-version"]') || {}).content || '0.0.0';
+    var dataElement = document.getElementById('app-data');
+    var project = validateImportedProject(JSON.parse(dataElement.textContent));
+    var editId = null;
+    var draftAudioData = '';
+    var draftAudioText = '';
+    var dirty = false;
+    var currentAudio = null;
+    var currentAudioButton = null;
+    var toastTimer = null;
+    var dragState = null;
+    var batchDeleteSelection = new Set();
+    var DRAG_HOLD_MOUSE_MS = 160;
+    var DRAG_HOLD_TOUCH_MS = 280;
+    var DRAG_MOVE_TOLERANCE = 10;
+
+    var wordGrid = document.getElementById('wordGrid');
+    var searchInput = document.getElementById('searchInput');
+    var categoryFilter = document.getElementById('categoryFilter');
+    var editorBackdrop = document.getElementById('editorBackdrop');
+    var batchDeleteBackdrop = document.getElementById('batchDeleteBackdrop');
+    var batchDeleteSearch = document.getElementById('batchDeleteSearch');
+    var batchDeleteList = document.getElementById('batchDeleteList');
+    var batchDeleteSummary = document.getElementById('batchDeleteSummary');
+    var confirmBatchDeleteButton = document.getElementById('confirmBatchDeleteButton');
+    var wordForm = document.getElementById('wordForm');
+    var phraseEditor = document.getElementById('phraseEditor');
+    var wordInput = document.getElementById('wordInput');
+    var phoneticInput = document.getElementById('phoneticInput');
+    var categoryInput = document.getElementById('categoryInput');
+    var meaningInput = document.getElementById('meaningInput');
+    var phraseTitleInput = document.getElementById('phraseTitleInput');
+    var formError = document.getElementById('formError');
+    var audioStatus = document.getElementById('audioStatus');
+    var audioHelp = document.getElementById('audioHelp');
+    var onlineTtsButton = document.getElementById('onlineTtsButton');
+    var configuredTtsEndpoint = (document.querySelector('meta[name="tts-endpoint"]') || {}).content || '';
+    var appToken = (document.querySelector('meta[name="local-app-token"]') || {}).content || '';
+    var isLocalApp = Boolean(appToken && /^https?:$/.test(location.protocol));
+    var ttsEndpoint = configuredTtsEndpoint || (isLocalApp ? '/v1/tts' : '');
+    var pageId = isLocalApp ? makePageId() : '';
+    var pageHeartbeatTimer = null;
+    var pageCloseNotified = false;
+    document.body.dataset.localApp = isLocalApp ? 'true' : 'false';
+
+    function makeId() {
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+      return 'word-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+    }
+
+    function makePageId() {
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+      return 'page-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+    }
+
+    function sendPageLifecycle(action, keepalive) {
+      if (!isLocalApp || !pageId) return Promise.resolve();
+      return fetch('/v1/page/' + action, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Vocabulary-Token': appToken
+        },
+        body: JSON.stringify({ pageId: pageId }),
+        cache: 'no-store',
+        keepalive: Boolean(keepalive)
+      }).catch(function () {});
+    }
+
+    function startPageSession() {
+      if (!isLocalApp) return;
+      pageCloseNotified = false;
+      clearInterval(pageHeartbeatTimer);
+      sendPageLifecycle('open', false);
+      pageHeartbeatTimer = setInterval(function () {
+        sendPageLifecycle('heartbeat', false);
+      }, 20000);
+    }
+
+    function notifyPageClosed(event) {
+      if (!isLocalApp || pageCloseNotified) return;
+      clearInterval(pageHeartbeatTimer);
+      if (event && event.persisted) return;
+      pageCloseNotified = true;
+      sendPageLifecycle('close', true);
+    }
+
+    function normalized(value) {
+      return String(value || '').trim().toLocaleLowerCase('en-US');
+    }
+
+    function hasValidAudio(item) {
+      return Boolean(item.audioData && item.audioText === item.word);
+    }
+
+    function phraseTitleFor(item) {
+      var value = item && typeof item.phraseTitle === 'string' ? item.phraseTitle.trim() : '';
+      return value || '短语搭配';
+    }
+
+    function textNode(tag, className, value) {
+      var element = document.createElement(tag);
+      if (className) element.className = className;
+      element.textContent = value;
+      return element;
+    }
+
+    function button(label, className, handler, ariaLabel) {
+      var element = document.createElement('button');
+      element.type = 'button';
+      element.className = className;
+      element.textContent = label;
+      if (ariaLabel) element.setAttribute('aria-label', ariaLabel);
+      element.addEventListener('click', handler);
+      return element;
+    }
+
+    function getFilteredWords() {
+      var query = normalized(searchInput.value);
+      var category = categoryFilter.value;
+      return project.words.filter(function (item) {
+        if (category !== 'all' && item.category !== category) return false;
+        if (!query) return true;
+        var haystack = [item.word, item.phonetic, item.meaning, phraseTitleFor(item)]
+          .concat((item.phrases || []).map(function (phrase) { return phrase.en + ' ' + phrase.zh; }))
+          .join(' ')
+          .toLocaleLowerCase('en-US');
+        return haystack.indexOf(query) !== -1;
+      });
+    }
+
+    function stopAudio() {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
+      if (currentAudioButton) currentAudioButton.classList.remove('playing');
+      currentAudio = null;
+      currentAudioButton = null;
+    }
+
+    function playEmbedded(item, trigger) {
+      stopAudio();
+      if (!hasValidAudio(item)) {
+        showToast('这个单词还没有可写入成品的固定发音');
+        return;
+      }
+      var audio = new Audio(item.audioData);
+      currentAudio = audio;
+      currentAudioButton = trigger;
+      trigger.classList.add('playing');
+      audio.onended = stopAudio;
+      audio.onerror = function () { stopAudio(); showToast('音频无法播放，请重新导入'); };
+      audio.play().catch(function () { stopAudio(); showToast('请再次点击播放按钮'); });
+    }
+
+    function dragSortAvailable() {
+      return isLocalApp
+        && document.body.dataset.editing === 'true'
+        && !searchInput.value.trim()
+        && categoryFilter.value === 'all'
+        && !editorBackdrop.classList.contains('open');
+    }
+
+    function createDragHandle(item, card) {
+      var handle = document.createElement('button');
+      handle.type = 'button';
+      handle.className = 'drag-handle';
+      handle.textContent = '⠿ 按住拖动调整位置';
+      handle.setAttribute('aria-label', '按住拖动调整 “' + item.word + '” 的位置');
+      var available = !searchInput.value.trim() && categoryFilter.value === 'all';
+      handle.classList.toggle('unavailable', !available);
+      handle.setAttribute('aria-disabled', available ? 'false' : 'true');
+      handle.title = available ? '按住后拖到新位置，再松开' : '清空搜索并选择全部分类后可拖动排序';
+      handle.addEventListener('pointerdown', function (event) {
+        beginDragPress(event, item.id, card, handle);
+      });
+      handle.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      });
+      handle.addEventListener('contextmenu', function (event) { event.preventDefault(); });
+      return handle;
+    }
+
+    function beginDragPress(event, wordId, card, handle) {
+      if (!dragSortAvailable()) {
+        if (isLocalApp && document.body.dataset.editing === 'true') {
+          showToast('清空搜索并选择“全部分类”后可拖动排序');
+        }
+        return;
+      }
+      if (dragState || event.isPrimary === false || event.button !== 0) return;
+      event.preventDefault();
+      dragState = {
+        pointerId: event.pointerId,
+        pointerType: event.pointerType,
+        wordId: wordId,
+        source: card,
+        handle: handle,
+        startX: event.clientX,
+        startY: event.clientY,
+        lastX: event.clientX,
+        lastY: event.clientY,
+        active: false,
+        holdTimer: null,
+        animationFrame: null,
+        scrollSpeed: 0,
+        ghost: null,
+        offsetX: 0,
+        offsetY: 0,
+        initialOrder: []
+      };
+      try { handle.setPointerCapture(event.pointerId); } catch (ignore) {}
+      dragState.holdTimer = setTimeout(
+        activateDrag,
+        event.pointerType === 'mouse' ? DRAG_HOLD_MOUSE_MS : DRAG_HOLD_TOUCH_MS
+      );
+    }
+
+    function activateDrag() {
+      var state = dragState;
+      if (!state || !dragSortAvailable()) {
+        finishDrag(false);
+        return;
+      }
+      var rect = state.source.getBoundingClientRect();
+      state.active = true;
+      state.initialOrder = Array.from(wordGrid.querySelectorAll('.word-card[data-word-id]')).map(function (card) {
+        return card.dataset.wordId;
+      });
+      state.offsetX = Math.max(12, Math.min(state.startX - rect.left, rect.width - 12));
+      state.offsetY = Math.max(12, Math.min(state.startY - rect.top, rect.height - 12));
+      stopAudio();
+      state.source.classList.add('drag-source');
+      state.source.setAttribute('aria-grabbed', 'true');
+      document.body.classList.add('is-dragging');
+
+      var ghost = state.source.cloneNode(true);
+      ghost.classList.remove('drag-source');
+      ghost.classList.add('drag-ghost');
+      ghost.removeAttribute('data-word-id');
+      ghost.removeAttribute('aria-grabbed');
+      ghost.setAttribute('aria-hidden', 'true');
+      ghost.style.width = rect.width + 'px';
+      ghost.style.height = rect.height + 'px';
+      Array.from(ghost.querySelectorAll('button')).forEach(function (buttonElement) { buttonElement.tabIndex = -1; });
+      document.body.appendChild(ghost);
+      state.ghost = ghost;
+      positionDragGhost(state.lastX, state.lastY);
+      state.animationFrame = requestAnimationFrame(dragAutoScrollFrame);
+    }
+
+    function positionDragGhost(clientX, clientY) {
+      var state = dragState;
+      if (!state || !state.ghost) return;
+      var width = state.ghost.offsetWidth;
+      var left = Math.max(8, Math.min(clientX - state.offsetX, window.innerWidth - width - 8));
+      state.ghost.style.left = left + 'px';
+      state.ghost.style.top = (clientY - state.offsetY) + 'px';
+    }
+
+    function reorderDraggedCard(clientX, clientY) {
+      var state = dragState;
+      if (!state || !state.active) return;
+      var hit = document.elementFromPoint(clientX, clientY);
+      var target = hit && hit.closest ? hit.closest('.word-card[data-word-id]') : null;
+      if (!target || target === state.source || target.parentElement !== wordGrid) return;
+      var rect = target.getBoundingClientRect();
+      var centerX = rect.left + rect.width / 2;
+      var centerY = rect.top + rect.height / 2;
+      var columns = getComputedStyle(wordGrid).gridTemplateColumns.trim().split(/\s+/).length;
+      var sameRow = columns > 1 && Math.abs(clientY - centerY) < rect.height * .36;
+      var placeBefore = sameRow ? clientX < centerX : clientY < centerY;
+      if (placeBefore) {
+        if (target.previousElementSibling !== state.source) wordGrid.insertBefore(state.source, target);
+      } else if (target.nextElementSibling !== state.source) {
+        wordGrid.insertBefore(state.source, target.nextSibling);
+      }
+    }
+
+    function updateDragScrollSpeed(clientY) {
+      var state = dragState;
+      if (!state || !state.active) return;
+      var edge = Math.min(88, window.innerHeight * .18);
+      if (clientY < edge) {
+        state.scrollSpeed = -Math.min(18, Math.ceil((edge - clientY) / 4));
+      } else if (clientY > window.innerHeight - edge) {
+        state.scrollSpeed = Math.min(18, Math.ceil((clientY - (window.innerHeight - edge)) / 4));
+      } else {
+        state.scrollSpeed = 0;
+      }
+    }
+
+    function dragAutoScrollFrame() {
+      var state = dragState;
+      if (!state || !state.active) return;
+      if (state.scrollSpeed) {
+        window.scrollBy(0, state.scrollSpeed);
+        reorderDraggedCard(state.lastX, state.lastY);
+      }
+      state.animationFrame = requestAnimationFrame(dragAutoScrollFrame);
+    }
+
+    function handleDragPointerMove(event) {
+      var state = dragState;
+      if (!state || event.pointerId !== state.pointerId) return;
+      state.lastX = event.clientX;
+      state.lastY = event.clientY;
+      var distance = Math.hypot(event.clientX - state.startX, event.clientY - state.startY);
+      if (!state.active && distance > DRAG_MOVE_TOLERANCE) {
+        finishDrag(false);
+        return;
+      }
+      event.preventDefault();
+      if (!state.active) return;
+      positionDragGhost(event.clientX, event.clientY);
+      updateDragScrollSpeed(event.clientY);
+      reorderDraggedCard(event.clientX, event.clientY);
+    }
+
+    function handleDragPointerEnd(event) {
+      if (!dragState || event.pointerId !== dragState.pointerId) return;
+      finishDrag(event.type === 'pointerup' && dragState.active);
+    }
+
+    function finishDrag(commit) {
+      var state = dragState;
+      if (!state) return;
+      dragState = null;
+      clearTimeout(state.holdTimer);
+      if (state.animationFrame !== null) cancelAnimationFrame(state.animationFrame);
+      try {
+        if (state.handle.hasPointerCapture && state.handle.hasPointerCapture(state.pointerId)) {
+          state.handle.releasePointerCapture(state.pointerId);
+        }
+      } catch (ignore) {}
+      if (state.ghost) state.ghost.remove();
+      state.source.classList.remove('drag-source');
+      state.source.removeAttribute('aria-grabbed');
+      document.body.classList.remove('is-dragging');
+      if (!state.active) return;
+      if (!commit) {
+        render();
+        return;
+      }
+      var orderedIds = Array.from(wordGrid.querySelectorAll('.word-card[data-word-id]')).map(function (card) {
+        return card.dataset.wordId;
+      });
+      var changed = orderedIds.some(function (id, index) { return id !== state.initialOrder[index]; });
+      if (changed && orderedIds.length === project.words.length) {
+        var byId = new Map(project.words.map(function (item) { return [item.id, item]; }));
+        project.words = orderedIds.map(function (id) { return byId.get(id); });
+        dirty = true;
+      }
+      render();
+      if (changed) showToast('词块顺序已调整，导出新单词卡后会固定保存');
+    }
+
+    function renderCard(item) {
+      var card = document.createElement('article');
+      card.className = 'word-card';
+      card.dataset.wordId = item.id;
+
+      if (isLocalApp) card.appendChild(createDragHandle(item, card));
+
+      var head = document.createElement('div');
+      head.className = 'card-head';
+      head.appendChild(textNode('h2', 'word-title', item.word));
+      head.appendChild(textNode('span', 'tag ' + (CATEGORY_LABELS[item.category] ? item.category : 'general'), CATEGORY_LABELS[item.category] || CATEGORY_LABELS.general));
+      card.appendChild(head);
+
+      var phoneticRow = document.createElement('div');
+      phoneticRow.className = 'phonetic-row';
+      phoneticRow.appendChild(textNode('div', 'phonetic', item.phonetic || '暂无音标'));
+      var speak = button('▶', 'speak-button' + (hasValidAudio(item) ? '' : ' missing'), function () { playEmbedded(item, speak); }, '朗读 ' + item.word);
+      phoneticRow.appendChild(speak);
+      card.appendChild(phoneticRow);
+      card.appendChild(textNode('p', 'meaning', item.meaning));
+
+      var phrases = document.createElement('div');
+      phrases.className = 'phrases';
+      phrases.appendChild(textNode('div', 'phrase-label', phraseTitleFor(item)));
+      if (item.phrases && item.phrases.length) {
+        item.phrases.forEach(function (phrase) {
+          var row = document.createElement('div');
+          row.className = 'phrase-item';
+          row.appendChild(textNode('span', 'phrase-en', phrase.en));
+          row.appendChild(textNode('span', 'phrase-zh', phrase.zh));
+          phrases.appendChild(row);
+        });
+      } else {
+        phrases.appendChild(textNode('span', 'no-phrases', '暂未添加短语'));
+      }
+      card.appendChild(phrases);
+
+      var actions = document.createElement('div');
+      actions.className = 'card-actions';
+      actions.appendChild(button('编辑', 'button secondary compact', function () { openEditor(item.id); }));
+      if (isLocalApp) {
+        actions.appendChild(button('上移', 'button secondary compact', function () { moveWord(item.id, -1); }));
+        actions.appendChild(button('下移', 'button secondary compact', function () { moveWord(item.id, 1); }));
+      }
+      actions.appendChild(button('删除', 'button danger compact', function () { deleteWord(item.id); }));
+      if (!hasValidAudio(item)) actions.appendChild(textNode('span', 'audio-warning', '● 缺少固定发音'));
+      card.appendChild(actions);
+      return card;
+    }
+
+    function render() {
+      stopAudio();
+      var filtered = getFilteredWords();
+      wordGrid.replaceChildren();
+      if (!filtered.length) {
+        var empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.textContent = project.words.length ? '没有找到符合条件的单词' : '还没有单词，进入编辑模式添加第一个吧';
+        wordGrid.appendChild(empty);
+      } else {
+        filtered.forEach(function (item) {
+          wordGrid.appendChild(renderCard(item));
+        });
+      }
+      var audioCount = project.words.filter(hasValidAudio).length;
+      var missingCount = project.words.length - audioCount;
+      document.getElementById('totalCount').textContent = String(project.words.length);
+      document.getElementById('audioCount').textContent = String(audioCount);
+      document.getElementById('visibleCount').textContent = String(filtered.length);
+      document.getElementById('versionPill').textContent = '界面 v' + APP_VERSION;
+      document.getElementById('voiceLabel').textContent = '固定声音：' + project.voice;
+      document.getElementById('editStatusTitle').textContent = missingCount ? '有 ' + missingCount + ' 个单词缺少固定发音' : '所有单词均有固定发音';
+      var dragBlocked = isLocalApp
+        && document.body.dataset.editing === 'true'
+        && (Boolean(searchInput.value.trim()) || categoryFilter.value !== 'all');
+      document.getElementById('editStatusDetail').textContent = dragBlocked
+        ? '清空搜索并选择全部分类后可拖动排序'
+        : (missingCount ? '补齐发音后才可导出正式单词卡' : (dirty ? '有尚未导出的修改' : '可以导出新单词卡'));
+    }
+
+    function setEditing(enabled) {
+      if (!enabled && dragState) finishDrag(false);
+      document.body.dataset.editing = enabled ? 'true' : 'false';
+      document.getElementById('toggleEditButton').textContent = enabled ? '✓ 正在编辑' : '✎ 编辑单词';
+    }
+
+    function getBatchDeleteWords() {
+      var query = normalized(batchDeleteSearch.value);
+      if (!query) return project.words.slice();
+      return project.words.filter(function (item) {
+        return normalized([item.word, item.phonetic, item.meaning, phraseTitleFor(item)].join(' ')).includes(query);
+      });
+    }
+
+    function updateBatchDeleteSummary() {
+      var count = batchDeleteSelection.size;
+      batchDeleteSummary.textContent = '已选择 ' + count + ' 个单词';
+      confirmBatchDeleteButton.disabled = count === 0;
+      confirmBatchDeleteButton.textContent = count ? '删除所选单词（' + count + '）' : '删除所选单词';
+    }
+
+    function renderBatchDeleteList() {
+      var visibleWords = getBatchDeleteWords();
+      batchDeleteList.replaceChildren();
+      if (!visibleWords.length) {
+        batchDeleteList.appendChild(textNode('div', 'empty-state', '没有找到符合条件的单词'));
+      } else {
+        visibleWords.forEach(function (item) {
+          var row = document.createElement('label');
+          row.className = 'batch-delete-item';
+          var checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = batchDeleteSelection.has(item.id);
+          checkbox.setAttribute('aria-label', '选择删除“' + item.word + '”');
+          checkbox.addEventListener('change', function () {
+            if (checkbox.checked) batchDeleteSelection.add(item.id);
+            else batchDeleteSelection.delete(item.id);
+            updateBatchDeleteSummary();
+          });
+          var copy = document.createElement('span');
+          copy.appendChild(textNode('span', 'batch-delete-word', item.word));
+          copy.appendChild(textNode('span', 'batch-delete-meaning', item.meaning));
+          row.appendChild(checkbox);
+          row.appendChild(copy);
+          batchDeleteList.appendChild(row);
+        });
+      }
+      updateBatchDeleteSummary();
+    }
+
+    function openBatchDelete() {
+      if (!project.words.length) {
+        showToast('当前没有可删除的单词');
+        return;
+      }
+      if (dragState) finishDrag(false);
+      batchDeleteSelection.clear();
+      batchDeleteSearch.value = '';
+      renderBatchDeleteList();
+      batchDeleteBackdrop.classList.add('open');
+      batchDeleteBackdrop.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      setTimeout(function () { batchDeleteSearch.focus(); }, 30);
+    }
+
+    function closeBatchDelete() {
+      batchDeleteBackdrop.classList.remove('open');
+      batchDeleteBackdrop.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    function selectVisibleBatchWords() {
+      getBatchDeleteWords().forEach(function (item) { batchDeleteSelection.add(item.id); });
+      renderBatchDeleteList();
+    }
+
+    function clearBatchWordSelection() {
+      batchDeleteSelection.clear();
+      renderBatchDeleteList();
+    }
+
+    function deleteSelectedWords() {
+      var count = batchDeleteSelection.size;
+      if (!count) return;
+      if (!window.confirm('确定删除选中的 ' + count + ' 个单词吗？')) return;
+      stopAudio();
+      project.words = project.words.filter(function (item) { return !batchDeleteSelection.has(item.id); });
+      dirty = true;
+      closeBatchDelete();
+      batchDeleteSelection.clear();
+      render();
+      showToast('已删除 ' + count + ' 个单词');
+    }
+
+    function clearAllWords() {
+      if (!project.words.length) {
+        showToast('当前已经没有单词');
+        return;
+      }
+      if (!window.confirm('确定清空全部单词吗？保存为默认内容或导出前仍可通过重新导入恢复。')) return;
+      stopAudio();
+      if (dragState) finishDrag(false);
+      project.words = [];
+      searchInput.value = '';
+      categoryFilter.value = 'all';
+      dirty = true;
+      render();
+      showToast('已清空全部单词');
+    }
+
+    async function saveDefaultProject() {
+      var saveButton = document.getElementById('saveDefaultButton');
+      if (!isLocalApp) {
+        showToast('请使用单词卡制作器 EXE 保存默认内容');
+        return;
+      }
+      saveButton.disabled = true;
+      saveButton.textContent = '正在保存…';
+      project.appVersion = APP_VERSION;
+      project.updatedAt = new Date().toISOString();
+      try {
+        var response = await fetch('/v1/default', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Vocabulary-Token': appToken
+          },
+          body: JSON.stringify({ project: project })
+        });
+        var result = await response.json().catch(function () { return {}; });
+        if (!response.ok) throw new Error(result.error || '保存失败');
+        dirty = false;
+        dataElement.textContent = safeJson(project);
+        render();
+        showToast('已将当前 ' + project.words.length + ' 个单词保存为默认内容');
+      } catch (error) {
+        showToast('保存默认内容失败：' + (error.message || '请稍后重试'));
+      } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = '★ 保存为默认内容';
+      }
+    }
+
+    function addPhraseRow(phrase) {
+      var row = document.createElement('div');
+      row.className = 'phrase-row';
+      var en = document.createElement('input');
+      en.className = 'control phrase-en-input';
+      en.type = 'text';
+      en.maxLength = 160;
+      en.placeholder = '英文短语';
+      en.value = phrase && phrase.en ? phrase.en : '';
+      var zh = document.createElement('input');
+      zh.className = 'control phrase-zh-input';
+      zh.type = 'text';
+      zh.maxLength = 240;
+      zh.placeholder = '中文翻译';
+      zh.value = phrase && phrase.zh ? phrase.zh : '';
+      var remove = button('×', 'icon-button', function () {
+        row.remove();
+        if (!phraseEditor.children.length) addPhraseRow();
+      }, '删除这条短语');
+      row.appendChild(en);
+      row.appendChild(zh);
+      row.appendChild(remove);
+      phraseEditor.appendChild(row);
+    }
+
+    function updateAudioStatus() {
+      var valid = Boolean(draftAudioData && draftAudioText === wordInput.value.trim());
+      audioStatus.className = 'status-pill ' + (valid ? 'good' : 'warn');
+      audioStatus.textContent = valid ? '已有固定发音' : '缺少固定发音';
+      audioHelp.textContent = valid
+        ? '当前音频对应 “' + draftAudioText + '”，保存后会直接嵌入成品。'
+        : '可临时试听；正式导出前需要在线生成或导入对应的 Guy MP3。';
+    }
+
+    function openEditor(id) {
+      editId = id || null;
+      var item = editId ? project.words.find(function (entry) { return entry.id === editId; }) : null;
+      document.getElementById('editorTitle').textContent = item ? '编辑单词' : '添加单词';
+      wordInput.value = item ? item.word : '';
+      phoneticInput.value = item ? item.phonetic : '';
+      categoryInput.value = item ? item.category : 'general';
+      meaningInput.value = item ? item.meaning : '';
+      phraseTitleInput.value = item ? phraseTitleFor(item) : '短语搭配';
+      draftAudioData = item ? item.audioData || '' : '';
+      draftAudioText = item ? item.audioText || '' : '';
+      phraseEditor.replaceChildren();
+      (item && item.phrases && item.phrases.length ? item.phrases : [{}]).forEach(addPhraseRow);
+      formError.textContent = '';
+      updateAudioStatus();
+      onlineTtsButton.disabled = !ttsEndpoint;
+      onlineTtsButton.title = ttsEndpoint ? '' : '请使用单词卡制作器打开此版本，以自动生成固定发音';
+      editorBackdrop.classList.add('open');
+      editorBackdrop.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      setTimeout(function () { wordInput.focus(); }, 30);
+    }
+
+    function closeEditor() {
+      editorBackdrop.classList.remove('open');
+      editorBackdrop.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      wordForm.reset();
+      editId = null;
+      draftAudioData = '';
+      draftAudioText = '';
+    }
+
+    function readPhrases() {
+      return Array.from(phraseEditor.querySelectorAll('.phrase-row')).map(function (row) {
+        return {
+          en: row.querySelector('.phrase-en-input').value.trim(),
+          zh: row.querySelector('.phrase-zh-input').value.trim()
+        };
+      }).filter(function (phrase) { return phrase.en || phrase.zh; });
+    }
+
+    function saveWord(event) {
+      event.preventDefault();
+      var word = wordInput.value.trim();
+      var meaning = meaningInput.value.trim();
+      if (!word || !meaning) {
+        formError.textContent = '请填写英文单词和中文释义。';
+        return;
+      }
+      var duplicate = project.words.find(function (entry) {
+        return entry.id !== editId && normalized(entry.word) === normalized(word);
+      });
+      if (duplicate) {
+        formError.textContent = '“' + word + '” 已经存在，请直接编辑原词条。';
+        return;
+      }
+      var item = editId ? project.words.find(function (entry) { return entry.id === editId; }) : null;
+      var record = item || { id: makeId() };
+      record.word = word;
+      record.phonetic = phoneticInput.value.trim();
+      record.category = CATEGORY_LABELS[categoryInput.value] ? categoryInput.value : 'general';
+      record.meaning = meaning;
+      record.phraseTitle = phraseTitleInput.value.trim() || '短语搭配';
+      record.phrases = readPhrases();
+      record.audioText = draftAudioText;
+      record.audioData = draftAudioData;
+      if (!item) project.words.push(record);
+      dirty = true;
+      closeEditor();
+      render();
+      showToast(item ? '单词已更新' : '单词已添加');
+    }
+
+    function deleteWord(id) {
+      var item = project.words.find(function (entry) { return entry.id === id; });
+      if (!item || !window.confirm('确定删除 “' + item.word + '” 吗？')) return;
+      project.words = project.words.filter(function (entry) { return entry.id !== id; });
+      dirty = true;
+      render();
+      showToast('已删除 “' + item.word + '”');
+    }
+
+    function moveWord(id, direction) {
+      if (!isLocalApp || document.body.dataset.editing !== 'true') return;
+      var index = project.words.findIndex(function (entry) { return entry.id === id; });
+      var target = index + direction;
+      if (index < 0 || target < 0 || target >= project.words.length) return;
+      var temp = project.words[index];
+      project.words[index] = project.words[target];
+      project.words[target] = temp;
+      dirty = true;
+      render();
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function () { resolve(String(reader.result)); };
+        reader.onerror = function () { reject(new Error('文件读取失败')); };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function importAudio(event) {
+      var file = event.target.files && event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        formError.textContent = '单个发音文件不能超过 2 MB。';
+        return;
+      }
+      try {
+        draftAudioData = await fileToDataUrl(file);
+        draftAudioText = wordInput.value.trim();
+        updateAudioStatus();
+        formError.textContent = '';
+        showToast('MP3 已载入，将随新版本一起保存');
+      } catch (error) {
+        formError.textContent = error.message || '音频读取失败。';
+      }
+    }
+
+    function devicePreview() {
+      var word = wordInput.value.trim();
+      if (!word) { formError.textContent = '请先填写英文单词。'; return; }
+      if (!window.speechSynthesis || typeof window.SpeechSynthesisUtterance !== 'function') {
+        formError.textContent = '当前设备不支持临时语音试听。';
+        return;
+      }
+      window.speechSynthesis.cancel();
+      var utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = 'en-US';
+      utterance.rate = .86;
+      window.speechSynthesis.speak(utterance);
+      showToast('这是设备临时试听，不会写入成品');
+    }
+
+    async function requestFixedAudio(word) {
+      var headers = { 'Content-Type': 'application/json' };
+      if (appToken) headers['X-Vocabulary-Token'] = appToken;
+      var response = await fetch(ttsEndpoint, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({ text: word, voice: project.voice })
+      });
+      if (!response.ok) {
+        var detail = '';
+        try { detail = (await response.json()).error || ''; } catch (ignore) {}
+        throw new Error(detail || ('语音服务返回错误 ' + response.status));
+      }
+      var blob = await response.blob();
+      if (!blob.size || blob.size > 2 * 1024 * 1024) throw new Error('语音服务返回的音频无效');
+      return fileToDataUrl(blob);
+    }
+
+    async function generateOnlineAudio() {
+      var word = wordInput.value.trim();
+      if (!word) { formError.textContent = '请先填写英文单词。'; return; }
+      if (!ttsEndpoint) {
+        formError.textContent = '请使用单词卡制作器 EXE 打开此版本，再自动生成固定发音。';
+        return;
+      }
+      onlineTtsButton.disabled = true;
+      onlineTtsButton.textContent = '正在生成…';
+      formError.textContent = '';
+      try {
+        draftAudioData = await requestFixedAudio(word);
+        draftAudioText = word;
+        updateAudioStatus();
+        showToast('固定发音已生成');
+      } catch (error) {
+        formError.textContent = '生成失败：' + (error.message || '请稍后重试');
+      } finally {
+        onlineTtsButton.disabled = !ttsEndpoint;
+        onlineTtsButton.textContent = '在线生成固定发音';
+      }
+    }
+
+    function safeJson(value) {
+      return JSON.stringify(value)
+        .replace(/&/g, '\\u0026')
+        .replace(/</g, '\\u003c')
+        .replace(/>/g, '\\u003e')
+        .replace(/\u2028/g, '\\u2028')
+        .replace(/\u2029/g, '\\u2029');
+    }
+
+    async function saveExportFile(fileName, htmlText) {
+      var file = new File([htmlText], fileName, { type: 'text/html;charset=utf-8' });
+      var isAppleMobile = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (isAppleMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: fileName });
+        return;
+      }
+      var url = URL.createObjectURL(file);
+      var link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+    }
+
+    async function exportVocabularyCard() {
+      var exportButton = document.getElementById('exportButton');
+      var missing = project.words.filter(function (item) { return !hasValidAudio(item); });
+      if (missing.length && !ttsEndpoint) {
+        showToast('请用制作器 EXE 打开本版本，自动补齐固定发音');
+        return;
+      }
+      if (missing.length) {
+        exportButton.disabled = true;
+        try {
+          for (var index = 0; index < missing.length; index += 1) {
+            var item = missing[index];
+            exportButton.textContent = '生成发音 ' + (index + 1) + '/' + missing.length;
+            item.audioData = await requestFixedAudio(item.word);
+            item.audioText = item.word;
+            dirty = true;
+            render();
+          }
+        } catch (error) {
+          showToast('固定发音生成失败：' + (error.message || '请稍后重试'));
+          exportButton.disabled = false;
+          exportButton.textContent = '↓ 导出新单词卡';
+          return;
+        }
+      }
+      project.updatedAt = new Date().toISOString();
+      project.appVersion = APP_VERSION;
+      var clone = document.documentElement.cloneNode(true);
+      clone.querySelector('body').dataset.editing = 'false';
+      clone.querySelector('body').dataset.localApp = 'false';
+      clone.querySelector('body').dataset.exported = 'true';
+      clone.querySelector('body').style.overflow = '';
+      clone.querySelector('#editorBackdrop').classList.remove('open');
+      clone.querySelector('#editorBackdrop').setAttribute('aria-hidden', 'true');
+      clone.querySelector('#batchDeleteBackdrop').classList.remove('open');
+      clone.querySelector('#batchDeleteBackdrop').setAttribute('aria-hidden', 'true');
+      clone.querySelector('#toast').classList.remove('show');
+      clone.querySelector('#wordGrid').replaceChildren();
+      clone.querySelector('#phraseEditor').replaceChildren();
+      clone.querySelector('#batchDeleteList').replaceChildren();
+      clone.querySelector('#app-data').textContent = safeJson(project);
+      clone.querySelector('meta[name="local-app-token"]').setAttribute('content', '');
+      var htmlText = '<!DOCTYPE html>\n' + clone.outerHTML;
+      var fileName = '编程单词卡.html';
+      try {
+        await saveExportFile(fileName, htmlText);
+        dirty = false;
+        dataElement.textContent = safeJson(project);
+        render();
+        showToast('已生成 ' + fileName);
+      } catch (error) {
+        showToast(error && error.name === 'AbortError' ? '已取消保存' : '保存失败，请重试');
+      } finally {
+        exportButton.disabled = false;
+        exportButton.textContent = '↓ 导出新单词卡';
+      }
+    }
+
+    function validateImportedProject(value) {
+      if (!value || value.schemaVersion !== 1 || !Array.isArray(value.words)) throw new Error('这不是可识别的单词卡版本');
+      if (value.voice !== 'en-US-GuyNeural') throw new Error('该文件使用了不同的固定声音');
+      if (value.words.length > 2000) throw new Error('词条数量超过支持范围');
+      value.appVersion = APP_VERSION;
+      var seen = new Set();
+      value.words.forEach(function (item) {
+        if (!item || typeof item.id !== 'string' || !item.word || !item.meaning) throw new Error('文件中存在不完整的词条');
+        var key = normalized(item.word);
+        if (seen.has(key)) throw new Error('文件中存在重复单词：' + item.word);
+        seen.add(key);
+        item.phraseTitle = phraseTitleFor(item).slice(0, 40);
+        item.phrases = Array.isArray(item.phrases) ? item.phrases : [];
+        item.audioData = typeof item.audioData === 'string' ? item.audioData : '';
+        item.audioText = typeof item.audioText === 'string' ? item.audioText : '';
+      });
+      return value;
+    }
+
+    async function importProjectFile(event) {
+      var file = event.target.files && event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+      if (dirty && !window.confirm('打开其他版本会放弃当前尚未导出的修改，是否继续？')) return;
+      try {
+        var source = await file.text();
+        var parsedDocument = new DOMParser().parseFromString(source, 'text/html');
+        var embedded = parsedDocument.getElementById('app-data');
+        if (!embedded) throw new Error('文件中没有单词卡数据');
+        project = validateImportedProject(JSON.parse(embedded.textContent));
+        dirty = false;
+        searchInput.value = '';
+        categoryFilter.value = 'all';
+        render();
+        setEditing(true);
+        showToast('已打开 ' + file.name);
+      } catch (error) {
+        showToast('打开失败：' + (error.message || '文件格式不正确'));
+      }
+    }
+
+    function showToast(message) {
+      var toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+    }
+
+    searchInput.addEventListener('input', function () { if (dragState) finishDrag(false); render(); });
+    categoryFilter.addEventListener('change', function () { if (dragState) finishDrag(false); render(); });
+    document.addEventListener('pointermove', handleDragPointerMove, { passive: false });
+    document.addEventListener('pointerup', handleDragPointerEnd);
+    document.addEventListener('pointercancel', handleDragPointerEnd);
+    document.getElementById('toggleEditButton').addEventListener('click', function () {
+      setEditing(document.body.dataset.editing !== 'true');
+    });
+    document.getElementById('leaveEditButton').addEventListener('click', function () { setEditing(false); });
+    document.getElementById('addWordButton').addEventListener('click', function () { openEditor(null); });
+    document.getElementById('batchDeleteButton').addEventListener('click', openBatchDelete);
+    document.getElementById('clearAllButton').addEventListener('click', clearAllWords);
+    document.getElementById('saveDefaultButton').addEventListener('click', saveDefaultProject);
+    document.getElementById('exportButton').addEventListener('click', exportVocabularyCard);
+    document.getElementById('closeBatchDeleteButton').addEventListener('click', closeBatchDelete);
+    document.getElementById('cancelBatchDeleteButton').addEventListener('click', closeBatchDelete);
+    document.getElementById('selectVisibleWordsButton').addEventListener('click', selectVisibleBatchWords);
+    document.getElementById('clearWordSelectionButton').addEventListener('click', clearBatchWordSelection);
+    document.getElementById('confirmBatchDeleteButton').addEventListener('click', deleteSelectedWords);
+    batchDeleteSearch.addEventListener('input', renderBatchDeleteList);
+    document.getElementById('closeEditorButton').addEventListener('click', closeEditor);
+    document.getElementById('cancelEditorButton').addEventListener('click', closeEditor);
+    document.getElementById('addPhraseButton').addEventListener('click', function () { addPhraseRow(); });
+    document.getElementById('devicePreviewButton').addEventListener('click', devicePreview);
+    document.getElementById('onlineTtsButton').addEventListener('click', generateOnlineAudio);
+    document.getElementById('audioFileInput').addEventListener('change', importAudio);
+    document.getElementById('projectFileInput').addEventListener('change', importProjectFile);
+    wordInput.addEventListener('input', updateAudioStatus);
+    wordForm.addEventListener('submit', saveWord);
+    editorBackdrop.addEventListener('click', function (event) { if (event.target === editorBackdrop) closeEditor(); });
+    batchDeleteBackdrop.addEventListener('click', function (event) { if (event.target === batchDeleteBackdrop) closeBatchDelete(); });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && dragState) finishDrag(false);
+      if (event.key === 'Escape' && editorBackdrop.classList.contains('open')) closeEditor();
+      if (event.key === 'Escape' && batchDeleteBackdrop.classList.contains('open')) closeBatchDelete();
+    });
+    window.addEventListener('beforeunload', function (event) {
+      if (!dirty) return;
+      event.preventDefault();
+      event.returnValue = '';
+    });
+    window.addEventListener('pagehide', notifyPageClosed);
+    window.addEventListener('pageshow', function (event) {
+      if (isLocalApp && event.persisted) startPageSession();
+    });
+
+    onlineTtsButton.disabled = !ttsEndpoint;
+    startPageSession();
+    render();
+  })();
+  </script>
+</body>
+</html>
