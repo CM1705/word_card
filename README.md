@@ -8,13 +8,9 @@
 
 ## 下载（免安装，只下载 exe 即可）
 
-不想下载整个项目？直接下载单个可执行文件：
+### [⬇ 点此下载最新版 VocabularyCardMaker.exe](https://github.com/CM1705/word_card/releases/latest/download/VocabularyCardMaker.exe)
 
-| 下载方式 | 链接 |
-| --- | --- |
-| **最新版本（推荐）** | [下载 VocabularyCardMaker.exe](https://github.com/CM1705/word_card/releases/latest/download/VocabularyCardMaker.exe) |
-| 固定版本 v1.10.0 | [下载 v1.10.0](https://github.com/CM1705/word_card/releases/download/v1.10.0/VocabularyCardMaker.exe) |
-| 全部版本 | [Releases 页面](https://github.com/CM1705/word_card/releases) |
+这个链接始终指向**最新版本**，约 16 MB，不需要 GitHub 账号，也不用下载整个项目。
 
 下载后**双击即可运行**，不需要安装 Python 或任何依赖。首次运行若遇到 Windows SmartScreen 提示，选择「更多信息 → 仍要运行」即可（程序未做代码签名）。
 
