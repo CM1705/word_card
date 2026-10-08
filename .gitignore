@@ -12,6 +12,9 @@ build/
 dist/
 *.manifest
 
+# ---- 打包成品：通过 GitHub Releases 分发给使用者，不入库 ----
+可运行/
+
 # ---- 本地临时文件 ----
 .audio_tmp/
 *.tmp
